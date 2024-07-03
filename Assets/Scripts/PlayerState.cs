@@ -18,29 +18,27 @@ public class PlayerState : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        /*
-        Collider[] neighbors = Physics.OverlapSphere(transform.position, 5.0f);
+        
+        Collider[] neighbors = Physics.OverlapSphere(transform.position, 0.55f);
+        bool canRecharge = true;
         foreach (Collider c in neighbors)
         {
-            if (c.gameObject != gameObject && c.GetComponent<DefenseGuidance>() != null)
+            if (c.GetComponent<DefenseGuidance>() != null)
             {
-
+                health -= 1.0f * Time.deltaTime * 100.0f;
+                canRecharge = false;
             }
         }
-        */
-        health = Mathf.Clamp(health + 1.0f * Time.deltaTime * 100.0f, 0.0f, 100.0f);
+
+        if (canRecharge)
+        {
+            health += 1.0f * Time.deltaTime * 100.0f;
+        }
+        health = Mathf.Clamp(health, 0.0f, 100.0f);
         
 
 
         playerMaterial.SetFloat("_TackleFactor", 1 - (health / 100));
     }
 
-    private void OnCollisionStay(Collision collision)
-    {
-        Collider c = collision.collider;
-        if (c.GetComponent<DefenseGuidance>() != null)
-        {
-            health -= 2.0f;
-        }
-    }
 }

@@ -15,6 +15,8 @@ public class DefenseGuidance : MonoBehaviour
     private float previousDeltaBearing;
     private float previousDist;
 
+    public bool RequireLOS = true;
+
 
     // Update is called once per frame
     void FixedUpdate()
@@ -48,9 +50,32 @@ public class DefenseGuidance : MonoBehaviour
             deltaBearing *= Mathf.Clamp(targetDelta.magnitude / 5, 0, 2);
 
 
+            if (RequireLOS)
+            {
+                RaycastHit hit;
+                Physics.Raycast(transform.position + new Vector3(0, 0.5f, 0), targetDelta, out hit, targetDelta.magnitude);
+                if (hit.collider != null)
+                {
+                    if (hit.transform.GetComponent<PlayerInputHandler>() != null)
+                    {
+                        //Only perform leading on targets you can verifiably see
+                        //This isn't super realistic since a real human could make pretty good guesses about where their quarry is, but this abstraction makes the game a little more fair.
+                        Debug.DrawRay(transform.position + new Vector3(0, 0.5f, 0), targetDelta);
+                        controller.SetTargetFacing((Quaternion.AngleAxis((deltaBearing + deltaDeltaBearing), Vector3.up) * Vector3.Normalize(GetComponent<Rigidbody>().velocity)));
+                    }
+                }
+            }
+            else
+            {
+                controller.SetTargetFacing((Quaternion.AngleAxis((deltaBearing + deltaDeltaBearing), Vector3.up) * Vector3.Normalize(GetComponent<Rigidbody>().velocity)));
+            }
+
+
+
+
             //Set the character controller to rotate towards a direction that is its current velocity direction rotated by any change in target bearing.
             //It is more intuitive to perform this step with the bot's forward vector rather than its velocity direction, but this introduces a lot of wobble because direction and velocity are not directly related in this system.
-            controller.SetTargetFacing((Quaternion.AngleAxis((deltaBearing + deltaDeltaBearing), Vector3.up) * Vector3.Normalize(GetComponent<Rigidbody>().velocity)));
+            //controller.SetTargetFacing((Quaternion.AngleAxis((deltaBearing + deltaDeltaBearing), Vector3.up) * Vector3.Normalize(GetComponent<Rigidbody>().velocity)));
         }
         else
         {
