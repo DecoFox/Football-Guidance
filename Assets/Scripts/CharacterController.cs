@@ -12,32 +12,48 @@ public class CharacterController : MonoBehaviour
     private Vector3 targetFacing;
     private Vector3 targetMovement;
 
+    public float movementMultiplier = 1.0f;
+    public bool randomizeMovementMultiplier;
+    public float randomizeMovementMinimum = 0.75f;
+    public float randomizeMovementMaximum = 1.25f;
+
     
     // Start is called before the first frame update
     void Start()
     {
         plr = gameObject;
         rb = GetComponent<Rigidbody>();
+        targetFacing = transform.forward;
+
+        if (randomizeMovementMultiplier)
+        {
+            movementMultiplier = Random.Range(randomizeMovementMinimum, randomizeMovementMaximum);
+        }
     }
 
-    public GameObject getObject()
+    public GameObject GetObject()
     {
         return this.plr;
     }
 
-    public Rigidbody getRigidbody()
+    public Rigidbody GetRigidbody()
     {
         return this.rb;
     }
 
-    public void setMovement(Vector3 movementInput)
+    public void SetMovement(Vector3 movementInput)
     {
         this.targetMovement = movementInput;
     }
 
-    public void setTargetFacing(Vector3 targetFacing)
+    public void SetTargetFacing(Vector3 targetFacing)
     {
         this.targetFacing = targetFacing;
+    }
+
+    public Vector3 GetTargetFacing()
+    {
+        return this.targetFacing;
     }
 
     // Update is called once per frame
@@ -55,7 +71,7 @@ public class CharacterController : MonoBehaviour
         Vector3 inputTransform = plr.transform.TransformVector(targetMovement);
 
         //Add input to the player's velocity
-        rb.velocity += new Vector3(inputTransform.x, 0, inputTransform.z);
+        rb.velocity += new Vector3(inputTransform.x, 0, inputTransform.z) * 0.4f * movementMultiplier;
 
         //Apply drag from the square of velocity times some number (Shooting for "feels good" here)
         rb.velocity -= rb.velocity * rb.velocity.magnitude * 0.005f;
