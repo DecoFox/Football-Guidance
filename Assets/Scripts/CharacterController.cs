@@ -21,6 +21,11 @@ public class CharacterController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        InitCharacter();
+    }
+
+    public void InitCharacter()
+    {
         plr = gameObject;
         rb = GetComponent<Rigidbody>();
         targetFacing = transform.forward;

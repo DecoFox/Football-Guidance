@@ -10,6 +10,15 @@ public class DefenseGuidance : MonoBehaviour
     [SerializeField]
     private Rigidbody target;
 
+    //ProNav is a powerful alrogrithm. If we want the game fair, we need to introduce some limitations. This buffer serves to introduce reaction time.
+    [SerializeField]
+    private int reactionTime = 0;
+    [SerializeField]
+    private bool randomizeReactionTime;
+    [SerializeField]
+    private int maxReactionTime = 0;
+    private Queue<Vector3> reactionBuffer = new(); 
+
     //Previous values, for computing derivatives.
     private float previousBearing;
     private float previousDeltaBearing;
@@ -17,11 +26,24 @@ public class DefenseGuidance : MonoBehaviour
 
     public bool RequireLOS = true;
 
+    private void Start()
+    {
+        InitDefense();
+    }
+
+    public void InitDefense()
+    {
+        if (randomizeReactionTime)
+        {
+            reactionTime = Random.Range(0, maxReactionTime);
+        }
+    }
+
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        ///ProNav implementation
+        ///---ProNav implementation---
         ///The idea here is we want to measure the line of sight between the target and the seeker, and we want to maneuver the seeker to resist change to the direction of that line of sight.
     
         //First order of business, we need to know the direction the target.
@@ -50,6 +72,8 @@ public class DefenseGuidance : MonoBehaviour
             deltaBearing *= Mathf.Clamp(targetDelta.magnitude / 5, 0, 2);
 
 
+            //Optionally only perform leading on targets you can verifiably see
+            //This isn't super realistic since a real human could make pretty good guesses about where their quarry is, but this abstraction makes the game a little more fair.
             if (RequireLOS)
             {
                 RaycastHit hit;
@@ -58,30 +82,39 @@ public class DefenseGuidance : MonoBehaviour
                 {
                     if (hit.transform.GetComponent<PlayerInputHandler>() != null)
                     {
-                        //Only perform leading on targets you can verifiably see
-                        //This isn't super realistic since a real human could make pretty good guesses about where their quarry is, but this abstraction makes the game a little more fair.
                         Debug.DrawRay(transform.position + new Vector3(0, 0.5f, 0), targetDelta);
-                        controller.SetTargetFacing((Quaternion.AngleAxis((deltaBearing + deltaDeltaBearing), Vector3.up) * Vector3.Normalize(GetComponent<Rigidbody>().velocity)));
+
+                        //Enqeue the steering command from ProNav into the reaction buffer
+                        //We multiply by velocity rather than forward, because we care more about rotating the direction we're headed than the direction we're pointing.
+                        reactionBuffer.Enqueue((Quaternion.AngleAxis((deltaBearing + deltaDeltaBearing), Vector3.up) * Vector3.Normalize(GetComponent<Rigidbody>().velocity)));
+
                     }
                 }
             }
             else
             {
-                controller.SetTargetFacing((Quaternion.AngleAxis((deltaBearing + deltaDeltaBearing), Vector3.up) * Vector3.Normalize(GetComponent<Rigidbody>().velocity)));
+                //Enqeue the steering command from ProNav into the reaction buffer regardless of LOS, if desired
+                reactionBuffer.Enqueue((Quaternion.AngleAxis((deltaBearing + deltaDeltaBearing), Vector3.up) * Vector3.Normalize(GetComponent<Rigidbody>().velocity)));           
             }
-
-
-
-
-            //Set the character controller to rotate towards a direction that is its current velocity direction rotated by any change in target bearing.
-            //It is more intuitive to perform this step with the bot's forward vector rather than its velocity direction, but this introduces a lot of wobble because direction and velocity are not directly related in this system.
-            //controller.SetTargetFacing((Quaternion.AngleAxis((deltaBearing + deltaDeltaBearing), Vector3.up) * Vector3.Normalize(GetComponent<Rigidbody>().velocity)));
         }
+
         else
         {
             //Case where we can't close the target: Chase the target instead. This gives us a good chance of getting in range to intercept later.
-            controller.SetTargetFacing(targetDelta);
+            reactionBuffer.Enqueue(targetDelta);
         }
+
+        //If there are more entries in the buffer than reaction time, decqueue the first and send its steering command.
+        //This writes a steering command to controller that is as many frames old as reactionTime.
+        //Framerate is not constant, but since we're simulating perception here, I think this is a reasonable abstraction.
+        if(reactionBuffer.Count > reactionTime)
+        {
+            //Since we're using a Queue, both the reading and writing operations are O(1)
+            Vector3 interest = reactionBuffer.Dequeue();
+            controller.SetTargetFacing(interest);
+        }
+
+
 
         //---Defender Separation---
         ///We're not working in DOTS, so looping over every defender for every defender is not only O(N^2) but also pretty expensive in general because of how GameObjects manage data.
@@ -95,9 +128,10 @@ public class DefenseGuidance : MonoBehaviour
         ///Since compute shaders are a bit out of scope and probably overkill for a team size of 11, instead we'll tackle the problem by OverlapShereing for nearby defenders and only avoiding them.
         ///OverlapSphere is still pretty expensive compared to similar strategies in DOTS, but it will do in this case.
 
-
         Vector3 avoidVec = Vector3.zero;
         Collider[] neighbors = Physics.OverlapSphere(transform.position, 5.0f);
+
+        //For every other defender in a 5 meter radius, attempt to strafe away from that defender by a factor equal to how close you are to it.
         foreach(Collider c in neighbors)
         {
             if(c.gameObject != gameObject && c.GetComponent<DefenseGuidance>() != null)
@@ -108,6 +142,7 @@ public class DefenseGuidance : MonoBehaviour
             }
         }
 
+        //Our control command is in local space, but our avoidance vector is in global space. We have to do a quick transform
         avoidVec = transform.InverseTransformVector(avoidVec);
 
         controller.SetMovement(new Vector3(0, 0, 1.0f) + avoidVec);
