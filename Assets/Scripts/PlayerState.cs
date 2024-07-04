@@ -10,14 +10,14 @@ public class PlayerState : MonoBehaviour
     [SerializeField]
     private Material playerMaterial;
 
-    //Working with prefabs etc and in multiple scenes, it would in most cases be favorable to rely on C# events and an event manager, but this is expedient for a single-scene demo
+    //UnityEvent for telling the MenuBar instance that a player has been tackled. See MenuBar script comments for details on why this is being done this way.
     [SerializeField]
     private UnityEvent playerTackled;
 
-    // Update is called once per frame
     void Update()
     {
-        
+        //Increment a "tackle" status on the player every tick for each defender they are in contact with
+        //This is meant to approximate situations where one or two defenders on the player's tail might be struggling to complete a tackle while not quite managing to fully catch up
         Collider[] neighbors = Physics.OverlapSphere(transform.position, 0.55f);
         bool canRecharge = true;
         foreach (Collider c in neighbors)
@@ -29,6 +29,7 @@ public class PlayerState : MonoBehaviour
             }
         }
 
+        //Decrement that "tackle" status if the player is free of obstructions
         if (canRecharge)
         {
             health += 1.0f * Time.deltaTime * 100.0f;
@@ -39,8 +40,6 @@ public class PlayerState : MonoBehaviour
         }
         health = Mathf.Clamp(health, 0.0f, 100.0f);
         
-
-
         playerMaterial.SetFloat("_TackleFactor", 1 - (health / 100));
     }
 

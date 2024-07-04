@@ -150,7 +150,8 @@ public class DefenseGuidance : MonoBehaviour
             ///This simulation provides for an arbitrary number of fish (performant up to several thousand in count) to avoid each other, align with each other, and pursue goals 
             ///
             ///Since compute shaders are a bit out of scope and probably overkill for a team size of 11, instead we'll tackle the problem by OverlapShereing for nearby defenders and only avoiding them.
-            ///OverlapSphere is still pretty expensive compared to similar strategies in DOTS, but it will do in this case.
+            ///OverlapSphere is still pretty expensive compared to similar strategies in DOTS and would not scale as well to very high player counts as a compute shader would, but it will do in this case.
+            ///Working on this scale, the overhead of submitting data to the GPU would rob us of most advantage we might see from a compute shader
 
             Vector3 avoidVec = Vector3.zero;
             Collider[] neighbors = Physics.OverlapSphere(transform.position, 5.0f);

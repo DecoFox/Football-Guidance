@@ -75,6 +75,7 @@ public class DefenseOrganizer : MonoBehaviour
 
             spawnedDefenders.Clear();
 
+            //Create new defenders
             foreach(Transform t in defenseSpawnpoints)
             {
                 print("Performing defense initialization...");
@@ -127,6 +128,7 @@ public class DefenseOrganizer : MonoBehaviour
         startButton.interactable = spawnedDefenders.Count == 11;
     }
 
+    //For turning defenders "on and off" with gamestate
     public void SetDefenseActive(bool setActive)
     {
         foreach(DefenseGuidance dg in spawnedDefenders)

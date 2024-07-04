@@ -69,8 +69,6 @@ public class MenuBar : MonoBehaviour
 
     private float bestRunSoFar;
 
-
-
     private GameState gameState = GameState.Stopped;
 
     public enum GameState
@@ -81,8 +79,6 @@ public class MenuBar : MonoBehaviour
         Touchdown
     }
 
-
-    // Start is called before the first frame update
     void Start()
     {
         SetGameState(GameState.Stopped);
@@ -90,6 +86,7 @@ public class MenuBar : MonoBehaviour
 
     public void ToggleGameState()
     {
+        //Conditionally handle "toggling" between four different states
         switch (gameState)
         {
             case GameState.Running:
@@ -115,6 +112,8 @@ public class MenuBar : MonoBehaviour
 
     }
 
+    //Called by PlayerState when the player is tackled.
+    //This is done with a UnityEvent. For more complex projects, it would probably be a better idea to use singletons and C# Events. For a single-scene demo of this scale, this is expedient.
     public void PlayerTackled()
     {
         SetGameState(GameState.Tackled);
@@ -127,7 +126,7 @@ public class MenuBar : MonoBehaviour
     }
 
     //Stopping and starting the game.
-    //For more complex projects, it would probably be a better idea to use singletons and C# Events. For a single-scene demo of this scale, this is expedient.
+    //Again, at a larger scale, a singleton and C# event system would probably bep referable
     public void SetGameState(GameState gS)
     {
         this.gameState = gS;
@@ -187,15 +186,16 @@ public class MenuBar : MonoBehaviour
         return this.gameState;
     }
 
-    // Update is called once per frame
     void Update()
     {
+        //Update realtime parameter sliders
         lowSpeed.text = "" + (float)Mathf.RoundToInt(lowerSpeedRange.value * 100) / 100;
         highSpeed.text = "" + (float)Mathf.RoundToInt(upperSpeedRange.value * 100) / 100;
 
         lowReac.text = "" + lowerReactionRange.value;
         highReac.text = "" + upperReactionRange.value;
 
+        //Update realtime scores
         if(gameState == GameState.Running)
         {
             //Distance in Yards
@@ -210,6 +210,7 @@ public class MenuBar : MonoBehaviour
         bestRun.text = "" + bestRunSoFar;
     }
 
+    //Order the defending team spawned. Optionally force them to reroll stats regardless of what the checkbox says. (Mostly for forcing a new team to spawn if none exists)
     public void SpawnDefense(bool forceConservationSpawn)
     {
         DefenseOrganizer.SpawnContext ctx = new DefenseOrganizer.SpawnContext();
@@ -238,6 +239,7 @@ public class MenuBar : MonoBehaviour
 
         if (!ctx.randomReaction)
         {
+            //If we aren't rolling stats, then parse the fixed number fields as a float and int and pass them to the context
             int desiredReaction;
             if (int.TryParse(setReaction.text, out desiredReaction))
             {
@@ -256,7 +258,7 @@ public class MenuBar : MonoBehaviour
         }
         if (!forceConservationSpawn)
         {
-            //Reset personal best if we reroll defense stats. Personal best is per defense.
+            //Reset personal best if we reroll defense stats. Personal best is per defense comp.
             if (regenDefense.isOn)
             {
                 ResetBest();
@@ -269,8 +271,6 @@ public class MenuBar : MonoBehaviour
         }
 
     }
-
-
 
     public void SetAverages(float averageSpeed, float averageReaction)
     {
