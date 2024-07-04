@@ -22,7 +22,6 @@ public class PlayerInputHandler : MonoBehaviour
     {
         control = new Control();
         control.Enable();
-        //Cursor.lockState = CursorLockMode.Locked;
     }
 
     // Update is called once per frame
@@ -69,5 +68,11 @@ public class PlayerInputHandler : MonoBehaviour
             controller.SetTargetFacing(playerCamera.transform.forward);
             cameraInit = true;
         }
+    }
+
+    public void ResetCamera()
+    {
+        this.cameraHeightAccumulator = 1.25f;
+        this.cameraYawAccumulator = 0.0f;
     }
 }

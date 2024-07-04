@@ -72,6 +72,8 @@ public class DefenseOrganizer : MonoBehaviour
                 CharacterController cc = newDefender.GetComponent<CharacterController>();
 
                 //Set up new CharacterController
+                //Default the CC off so they don't start moving right away
+                cc.enabled = false;
                 if (context.randomSpeed)
                 {
                     cc.SetMovementMultiplier(Random.Range(context.minSpeed, context.maxSpeed));
@@ -83,8 +85,10 @@ public class DefenseOrganizer : MonoBehaviour
                 cc.InitCharacter();
 
                 DefenseGuidance dg = newDefender.GetComponent<DefenseGuidance>();
-                
+
                 //Set up new DefenseGuidance
+                //Default the DG off so they don't start attacking right away
+                dg.enabled = false;
                 if (context.randomReaction)
                 {
                     dg.SetReaction(Random.Range(context.minReaction, context.maxReaction));
@@ -107,6 +111,16 @@ public class DefenseOrganizer : MonoBehaviour
 
             menu.SetAverages(speedAverage, reactionAverage);
 
+        }
+    }
+
+    public void SetDefenseActive(bool setActive)
+    {
+        foreach(DefenseGuidance dg in spawnedDefenders)
+        {
+            dg.enabled = setActive;
+            dg.GetComponent<CharacterController>().enabled = setActive;
+            dg.GetComponent<Rigidbody>().isKinematic = !setActive;
         }
     }
 

@@ -509,6 +509,37 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &253797265
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 253797266}
+  m_Layer: 0
+  m_Name: PlayerSpawn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &253797266
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 253797265}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 38.04, y: 1.51, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -4770,9 +4801,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   movementMultiplier: 1
-  randomizeMovementMultiplier: 0
-  randomizeMovementMinimum: 0.75
-  randomizeMovementMaximum: 1.25
   autoInit: 1
 --- !u!114 &1243206581
 MonoBehaviour:
@@ -4801,6 +4829,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerMaterial: {fileID: 2100000, guid: d2d8fbcf739f8e44e85ecb485c006742, type: 2}
+  playerTackled:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1727900272}
+        m_TargetAssemblyTypeName: MenuBar, Assembly-CSharp
+        m_MethodName: PlayerTackled
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1248385057
 GameObject:
   m_ObjectHideFlags: 0
@@ -6448,6 +6491,10 @@ MonoBehaviour:
   averageSpeedStat: {fileID: 1486132108}
   averageReactionStat: {fileID: 1237754897}
   regenDefense: {fileID: 2060271520}
+  gameStateSwitch: {fileID: 1820762127}
+  gameStateIndicator: {fileID: 2047060058}
+  player: {fileID: 1243206574}
+  playerSpawn: {fileID: 253797266}
   dO: {fileID: 1085475620}
 --- !u!1 &1747214778
 GameObject:
@@ -6603,7 +6650,7 @@ GameObject:
   - component: {fileID: 1820762128}
   - component: {fileID: 1820762127}
   m_Layer: 5
-  m_Name: Button
+  m_Name: StartButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6627,7 +6674,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: -189.6}
-  m_SizeDelta: {x: 169.8, y: 50}
+  m_SizeDelta: {x: 270.6, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1820762127
 MonoBehaviour:
@@ -6672,7 +6719,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1820762128}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1727900272}
+        m_TargetAssemblyTypeName: MenuBar, Assembly-CSharp
+        m_MethodName: ToggleGameState
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1820762128
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7615,6 +7674,7 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 1292545085}
+  - {fileID: 253797266}
   - {fileID: 1243206579}
   - {fileID: 1085475619}
   - {fileID: 797138529}

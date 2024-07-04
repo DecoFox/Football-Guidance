@@ -45,12 +45,112 @@ public class MenuBar : MonoBehaviour
     private Toggle regenDefense;
 
     [SerializeField]
+    private Button gameStateSwitch;
+    [SerializeField]
+    private TMP_Text gameStateIndicator;
+
+    [SerializeField]
+    private GameObject player;
+
+    [SerializeField]
+    private Transform playerSpawn;
+
+    [SerializeField]
     DefenseOrganizer dO;
+
+
+    private GameState gameState = GameState.Stopped;
+
+    public enum GameState
+    {
+        Stopped,
+        Running,
+        Tackled
+    }
+
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        SetGameState(GameState.Stopped);
+    }
+
+    public void ToggleGameState()
+    {
+        switch (gameState)
+        {
+            case GameState.Running:
+                SetGameState(GameState.Stopped);
+                break;
+            case GameState.Stopped:
+                SetGameState(GameState.Running);
+                break;
+            case GameState.Tackled:
+                ResetPlayer();
+                SpawnDefense(true);
+                SetGameState(GameState.Stopped);
+                break;
+        }
+
+    }
+
+    public void PlayerTackled()
+    {
+        SetGameState(GameState.Tackled);
+    }
+
+    //Stopping and starting the game.
+    //For more complex projects, it would probably be a better idea to use singletons and C# Events. For a single-scene demo of this scale, this is expedient.
+    public void SetGameState(GameState gS)
+    {
+        this.gameState = gS;
+
+        switch (gS)
+        {
+            case GameState.Running:
+                gameStateIndicator.text = "STOP";
+                Cursor.lockState = CursorLockMode.Locked;
+                break;
+            case GameState.Stopped:
+                gameStateIndicator.text = "START";
+                Cursor.lockState = CursorLockMode.Confined;
+                break;
+            case GameState.Tackled:
+                gameStateIndicator.text = "RESTART";
+                Cursor.lockState = CursorLockMode.Confined;
+                break;
+        }
+
+
+        if(gameState == GameState.Stopped || gameState == GameState.Tackled)
+        {
+            player.GetComponent<PlayerInputHandler>().enabled = false;
+            player.GetComponent<CharacterController>().enabled = false;
+            player.GetComponent<Rigidbody>().isKinematic = true;
+            dO.SetDefenseActive(false);
+        }
+        else
+        {
+            player.GetComponent<PlayerInputHandler>().enabled = true;
+            player.GetComponent<CharacterController>().enabled = true;
+            player.GetComponent<Rigidbody>().isKinematic = false;
+            dO.SetDefenseActive(true);
+        }
+
+
+    }
+
+    public void ResetPlayer()
+    {
+        player.transform.position = playerSpawn.position;
+        player.transform.rotation = playerSpawn.rotation;
+        player.GetComponent<PlayerState>().ResetHealth();
+        player.GetComponent<PlayerInputHandler>().ResetCamera();
+    }
+    
+    public GameState GetGameState()
+    {
+        return this.gameState;
     }
 
     // Update is called once per frame
@@ -63,7 +163,7 @@ public class MenuBar : MonoBehaviour
         highReac.text = "" + upperReactionRange.value;
     }
 
-    public void SpawnDefense()
+    public void SpawnDefense(bool forceConservationSpawn)
     {
         DefenseOrganizer.SpawnContext ctx = new DefenseOrganizer.SpawnContext();
         ctx.randomSpeed = randomizeSpeed.isOn;
@@ -107,8 +207,15 @@ public class MenuBar : MonoBehaviour
             ctx.minReaction = (int)lowerReactionRange.value;
             ctx.maxReaction = (int)upperReactionRange.value;
         }
+        if (!forceConservationSpawn)
+        {
+            dO.SpawnDefense(regenDefense.isOn, ctx);
+        }
+        else
+        {
+            dO.SpawnDefense(false, ctx);
+        }
 
-        dO.SpawnDefense(regenDefense.isOn, ctx);
     }
 
     public void SetAverages(float averageSpeed, float averageReaction)
