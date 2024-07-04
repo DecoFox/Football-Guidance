@@ -13,10 +13,6 @@ public class DefenseGuidance : MonoBehaviour
     //ProNav is a powerful alrogrithm. If we want the game fair, we need to introduce some limitations. This buffer serves to introduce reaction time.
     [SerializeField]
     private int reactionTime = 0;
-    [SerializeField]
-    private bool randomizeReactionTime;
-    [SerializeField]
-    private int maxReactionTime = 0;
     private Queue<Vector3> reactionBuffer = new(); 
 
     //Previous values, for computing derivatives.
@@ -29,27 +25,11 @@ public class DefenseGuidance : MonoBehaviour
 
     //Nullable point-of-origin for respawning defenders without destroying them
     [HideInInspector]
-    public Transform originTransform;
+    private Transform originTransform;
 
     //Autorun initialization function, for characters not spawned by a spawner
     [SerializeField]
     private bool autoInit = false;
-
-    private void Start()
-    {
-        if (autoInit)
-        {
-            InitDefense();
-        }
-    }
-
-    public void InitDefense()
-    {
-        if (randomizeReactionTime)
-        {
-            reactionTime = Random.Range(0, maxReactionTime);
-        }
-    }
 
     public void SetTarget(Rigidbody tar)
     {
@@ -59,6 +39,26 @@ public class DefenseGuidance : MonoBehaviour
     public void ClearTarget()
     {
         this.target = null;
+    }
+
+    public void SetReaction(int reactionTime)
+    {
+        this.reactionTime = reactionTime;
+    }
+
+    public int GetReaction()
+    {
+        return this.reactionTime;
+    }
+
+    public void SetOrigin(Transform orig)
+    {
+        this.originTransform = orig;
+    }
+
+    public Transform GetOrigin()
+    {
+        return this.originTransform;
     }
 
     // Update is called once per frame

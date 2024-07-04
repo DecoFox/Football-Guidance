@@ -22,7 +22,7 @@ public class PlayerInputHandler : MonoBehaviour
     {
         control = new Control();
         control.Enable();
-        Cursor.lockState = CursorLockMode.Locked;
+        //Cursor.lockState = CursorLockMode.Locked;
     }
 
     // Update is called once per frame

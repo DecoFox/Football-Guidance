@@ -12,10 +12,8 @@ public class CharacterController : MonoBehaviour
     private Vector3 targetFacing = Vector3.zero;
     private Vector3 targetMovement = Vector3.zero;
 
-    public float movementMultiplier = 1.0f;
-    public bool randomizeMovementMultiplier;
-    public float randomizeMovementMinimum = 0.75f;
-    public float randomizeMovementMaximum = 1.25f;
+    [SerializeField]
+    private float movementMultiplier = 1.0f;
 
     //Autorun initialization function, for characters not spawned by a spawner
     [SerializeField]
@@ -37,10 +35,6 @@ public class CharacterController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         targetFacing = transform.forward;
 
-        if (randomizeMovementMultiplier)
-        {
-            movementMultiplier = Random.Range(randomizeMovementMinimum, randomizeMovementMaximum);
-        }
     }
 
     public GameObject GetObject()
@@ -63,6 +57,15 @@ public class CharacterController : MonoBehaviour
         this.targetFacing = targetFacing;
     }
 
+    public void SetMovementMultiplier(float speed)
+    {
+        this.movementMultiplier = speed;
+    }
+    public float GetMovementMultiplier()
+    {
+        return this.movementMultiplier;
+    }
+
     public Vector3 GetTargetFacing()
     {
         return this.targetFacing;
@@ -76,9 +79,6 @@ public class CharacterController : MonoBehaviour
         ///A system using addForce and considering actual shoe-to-field contact surface area, materials, and relative friction would be much more realistic, but out-of-scope for a demo like this to make feel right.
         ///We have much more direct control over how the player feels this way.
     
-
-
-
         //Transform player input into player-local coordinate system
         Vector3 inputTransform = plr.transform.TransformVector(targetMovement);
 
@@ -95,8 +95,4 @@ public class CharacterController : MonoBehaviour
 
     }
 
-    private void Update()
-    {
-
-    }
 }

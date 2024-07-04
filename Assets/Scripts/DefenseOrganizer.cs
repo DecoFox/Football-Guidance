@@ -13,14 +13,17 @@ public class DefenseOrganizer : MonoBehaviour
     [SerializeField]
     private Rigidbody targetPlayer;
 
-    private List<DefenseGuidance> spawnedDefenders = new();
-    // Start is called before the first frame update
-    void Start()
-    {
-        SpawnDefense(true);
-    }
+    [SerializeField]
+    private MenuBar menu;
 
-    public void SpawnDefense(bool reinitialize)
+    private float speedAverage;
+    private float reactionAverage;
+
+
+    private List<DefenseGuidance> spawnedDefenders = new();
+
+    //Spawn the defenders, optionally destroying and recreating them with new stats
+    public void SpawnDefense(bool reinitialize, SpawnContext context)
     {
         if (!reinitialize)
         {
@@ -28,43 +31,96 @@ public class DefenseOrganizer : MonoBehaviour
             {
                 foreach(DefenseGuidance g in spawnedDefenders)
                 {
-                    if(g.originTransform != null)
+                    if(g.GetOrigin() != null)
                     {
-                        g.transform.position = g.originTransform.position;
-                        g.transform.rotation = g.originTransform.rotation;
+                        g.transform.position = g.GetOrigin().position;
+                        g.transform.rotation = g.GetOrigin().rotation;
                     }
                     else
                     {
+                        print("null origin");
                         //If something goes wrong in the redeploy process, just respawn everything from scratch
-                        SpawnDefense(false);
+                        SpawnDefense(true, context);
+                        break;
                     }
                 }
             }
             else
             {
                 //Ditto
-                SpawnDefense(false);
+                SpawnDefense(true, context);
             }
         }
         else
         {
+            //Zero the speed and reaction average accumulators for the new team comp
+            speedAverage = 0;
+            reactionAverage = 0;
+
+            //Remove any old defenders
+            foreach(DefenseGuidance dg in spawnedDefenders)
+            {
+                Destroy(dg.gameObject);
+            }
+
+            spawnedDefenders.Clear();
+
             foreach(Transform t in defenseSpawnpoints)
             {
                 print("Performing defense initialization...");
                 GameObject newDefender = Instantiate(defenderPrefab, t.position, t.rotation);
                 CharacterController cc = newDefender.GetComponent<CharacterController>();
+
+                //Set up new CharacterController
+                if (context.randomSpeed)
+                {
+                    cc.SetMovementMultiplier(Random.Range(context.minSpeed, context.maxSpeed));
+                }
+                else
+                {
+                    cc.SetMovementMultiplier(context.setSpeed);
+                }
                 cc.InitCharacter();
+
                 DefenseGuidance dg = newDefender.GetComponent<DefenseGuidance>();
-                dg.InitDefense();
+                
+                //Set up new DefenseGuidance
+                if (context.randomReaction)
+                {
+                    dg.SetReaction(Random.Range(context.minReaction, context.maxReaction));
+                }
+                else
+                {
+                    dg.SetReaction(context.setReaction);
+                }
+
+                dg.SetOrigin(t);
                 dg.SetTarget(targetPlayer);
+                speedAverage += cc.GetMovementMultiplier();
+                reactionAverage += dg.GetReaction();
                 spawnedDefenders.Add(dg);
             }
+
+            //Update the menu with the final stats of our defending team
+            speedAverage /= spawnedDefenders.Count;
+            reactionAverage /= spawnedDefenders.Count;
+
+            menu.SetAverages(speedAverage, reactionAverage);
+
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    public struct SpawnContext
     {
-        
+        public bool randomSpeed;
+        public bool randomReaction;
+        public float setSpeed;
+        public int setReaction;
+        public float minSpeed;
+        public float maxSpeed;
+        public int minReaction;
+        public int maxReaction;
     }
+
+
 }
