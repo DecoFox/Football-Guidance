@@ -32,7 +32,7 @@ public class PlayerInputHandler : MonoBehaviour
         Vector3 inputVector = new Vector3(control.Base.Movement.ReadValue<Vector2>().x, 0, control.Base.Movement.ReadValue<Vector2>().y);
 
         //Obtain player mouse input for camera control
-        Vector2 mouseInput = control.Base.CameraRotation.ReadValue<Vector2>();
+        Vector2 mouseInput = control.Base.CameraRotation.ReadValue<Vector2>() * Time.deltaTime * 30.0f;
         if (cameraInit)
         {
             cameraYawAccumulator += mouseInput.x / 100.0f;
