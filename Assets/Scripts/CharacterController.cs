@@ -9,19 +9,26 @@ public class CharacterController : MonoBehaviour
     private GameObject plr;
     private Rigidbody rb;
 
-    private Vector3 targetFacing;
-    private Vector3 targetMovement;
+    private Vector3 targetFacing = Vector3.zero;
+    private Vector3 targetMovement = Vector3.zero;
 
     public float movementMultiplier = 1.0f;
     public bool randomizeMovementMultiplier;
     public float randomizeMovementMinimum = 0.75f;
     public float randomizeMovementMaximum = 1.25f;
 
+    //Autorun initialization function, for characters not spawned by a spawner
+    [SerializeField]
+    private bool autoInit = false;
+
     
     // Start is called before the first frame update
     void Start()
     {
-        InitCharacter();
+        if (autoInit)
+        {
+            InitCharacter();
+        }
     }
 
     public void InitCharacter()
