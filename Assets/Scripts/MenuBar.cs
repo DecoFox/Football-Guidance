@@ -58,6 +58,18 @@ public class MenuBar : MonoBehaviour
     [SerializeField]
     DefenseOrganizer dO;
 
+    [SerializeField]
+    TMP_Text runStat;
+
+    [SerializeField]
+    TMP_Text bestRun;
+
+    [SerializeField]
+    TouchdownHandler th;
+
+    private float bestRunSoFar;
+
+
 
     private GameState gameState = GameState.Stopped;
 
@@ -65,7 +77,8 @@ public class MenuBar : MonoBehaviour
     {
         Stopped,
         Running,
-        Tackled
+        Tackled,
+        Touchdown
     }
 
 
@@ -90,6 +103,14 @@ public class MenuBar : MonoBehaviour
                 SpawnDefense(true);
                 SetGameState(GameState.Stopped);
                 break;
+            case GameState.Touchdown:
+                bestRun.text = "Touchdown!";
+                //Max out run distance for the touchdown record
+                bestRunSoFar = 100.0f;
+                ResetPlayer();
+                SpawnDefense(true);
+                SetGameState(GameState.Stopped);
+                break;
         }
 
     }
@@ -97,6 +118,12 @@ public class MenuBar : MonoBehaviour
     public void PlayerTackled()
     {
         SetGameState(GameState.Tackled);
+        float run = Mathf.Round((playerSpawn.InverseTransformPoint(player.transform.position).z * 1.09361f) * 100.0f) / 100.0f;
+        if (run > bestRunSoFar)
+        {
+            bestRunSoFar = run;
+            bestRun.text = "" + bestRunSoFar;
+        }
     }
 
     //Stopping and starting the game.
@@ -108,21 +135,28 @@ public class MenuBar : MonoBehaviour
         switch (gS)
         {
             case GameState.Running:
-                gameStateIndicator.text = "STOP";
+                gameStateIndicator.text = "RUNNING...";
                 Cursor.lockState = CursorLockMode.Locked;
+                th.ResetTouchdown();
                 break;
             case GameState.Stopped:
                 gameStateIndicator.text = "START";
                 Cursor.lockState = CursorLockMode.Confined;
+                th.ResetTouchdown();
                 break;
             case GameState.Tackled:
+                gameStateIndicator.text = "RESTART";
+                Cursor.lockState = CursorLockMode.Confined;
+                th.ResetTouchdown();
+                break;
+            case GameState.Touchdown:
                 gameStateIndicator.text = "RESTART";
                 Cursor.lockState = CursorLockMode.Confined;
                 break;
         }
 
 
-        if(gameState == GameState.Stopped || gameState == GameState.Tackled)
+        if(gameState == GameState.Stopped || gameState == GameState.Tackled || gameState == GameState.Touchdown)
         {
             player.GetComponent<PlayerInputHandler>().enabled = false;
             player.GetComponent<CharacterController>().enabled = false;
@@ -161,6 +195,19 @@ public class MenuBar : MonoBehaviour
 
         lowReac.text = "" + lowerReactionRange.value;
         highReac.text = "" + upperReactionRange.value;
+
+        if(gameState == GameState.Running)
+        {
+            //Distance in Yards
+            float run = Mathf.Round((playerSpawn.InverseTransformPoint(player.transform.position).z * 1.09361f) * 100.0f) / 100.0f;
+            runStat.text = "" + run;
+        }
+    }
+
+    public void ResetBest()
+    {
+        bestRunSoFar = 0;
+        bestRun.text = "" + bestRunSoFar;
     }
 
     public void SpawnDefense(bool forceConservationSpawn)
@@ -209,6 +256,11 @@ public class MenuBar : MonoBehaviour
         }
         if (!forceConservationSpawn)
         {
+            //Reset personal best if we reroll defense stats. Personal best is per defense.
+            if (regenDefense.isOn)
+            {
+                ResetBest();
+            }
             dO.SpawnDefense(regenDefense.isOn, ctx);
         }
         else
@@ -217,6 +269,8 @@ public class MenuBar : MonoBehaviour
         }
 
     }
+
+
 
     public void SetAverages(float averageSpeed, float averageReaction)
     {

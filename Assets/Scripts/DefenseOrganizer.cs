@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class DefenseOrganizer : MonoBehaviour
 {
@@ -16,11 +17,20 @@ public class DefenseOrganizer : MonoBehaviour
     [SerializeField]
     private MenuBar menu;
 
+    [SerializeField]
+    private Button startButton;
+
     private float speedAverage;
     private float reactionAverage;
 
 
     private List<DefenseGuidance> spawnedDefenders = new();
+
+    private void Start()
+    {
+        //Default the start button to off
+        startButton.interactable = false;
+    }
 
     //Spawn the defenders, optionally destroying and recreating them with new stats
     public void SpawnDefense(bool reinitialize, SpawnContext context)
@@ -112,6 +122,9 @@ public class DefenseOrganizer : MonoBehaviour
             menu.SetAverages(speedAverage, reactionAverage);
 
         }
+
+        //Validate start button if we have a defending team spawned properly.
+        startButton.interactable = spawnedDefenders.Count == 11;
     }
 
     public void SetDefenseActive(bool setActive)
